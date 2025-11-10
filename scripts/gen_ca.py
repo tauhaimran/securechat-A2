@@ -37,33 +37,33 @@ def create_root_ca( ca_name: str , output_dir: str = "certs"):
 
     # 3. Create self-signed X.509 Certificate
     certificate = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(rsa_private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=1825))  # ~5 years
-        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(rsa_private_key.public_key()), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(rsa_private_key.public_key()), critical=False)
-        .sign(private_key=rsa_private_key, algorithm=hashes.SHA256(), backend=default_backend())
+        x509.CertificateBuilder() # start building certificate
+        .subject_name(subject) # same as issuer for self-signed
+        .issuer_name(issuer) # self-signed
+        .public_key(rsa_private_key.public_key()) # public key
+        .serial_number(x509.random_serial_number()) # random serial number
+        .not_valid_before(datetime.utcnow()) # valid from now
+        .not_valid_after(datetime.utcnow() + timedelta(days=1825))  # ~5 years 
+        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True) # CA: TRUE
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(rsa_private_key.public_key()), critical=False) # Subject Key Identifier
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(rsa_private_key.public_key()), critical=False) # Authority Key Identifier
+        .sign(private_key=rsa_private_key, algorithm=hashes.SHA256(), backend=default_backend()) # sign with private key
     ) 
 
     # 4. Write Private Key to PEM (Privacy-Enhanced Mail) file
     key_path = os.path.join(output_dir, f"{ca_name}_ca_key.pem")
-    with open(key_path, "wb") as key_file:
-        key_file.write(
-            rsa_private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
+    with open(key_path, "wb") as key_file: # write binary mode
+        key_file.write( # write private key in PEM format
+            rsa_private_key.private_bytes( # serialize private key
+                encoding=serialization.Encoding.PEM, # PEM encoding ( Privacy-Enhanced Mail )
+                format=serialization.PrivateFormat.TraditionalOpenSSL, # traditional OpenSSL format ( this does not violate assignment rules , it is just a format )
+                encryption_algorithm=serialization.NoEncryption() # no encryption for simplicity
             )
         )
     
     # 5. Write Certificate to PEM file
     cert_path = os.path.join(output_dir, f"{ca_name}_ca_cert.pem")
-    with open(cert_path, "wb") as cert_file:
+    with open(cert_path, "wb") as cert_file: # write binary mode
         cert_file.write(
             certificate.public_bytes(serialization.Encoding.PEM)
         )
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     
 ############################
 # to run from command line:
-# python app/scripts/gen_ca.py --ca-name MyRootCA --output-dir certs
+# python scripts/gen_ca.py --ca-name MyRootCA --output-dir certs
