@@ -88,4 +88,3 @@ if __name__ == "__main__":
 ############################
 # to run from command line:
 # python scripts/gen_ca.py --ca-name MyRootCA --output-dir certs
-# ##
