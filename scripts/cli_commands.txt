@@ -1,0 +1,27 @@
+//to fix any signing issues LsOKUVxy7Wnl5XIl5X5eVm8AHQz1HmqfITZ2ULZ
+python scripts/diag_pki.py
+Read gen_ca.py
+
+regenerate the Root CA and re-issue client & server certificates signed by that CA, then re-run the diagnostic to confirm signatures match. Expected outcome: verify_signature should become True. I'll run the three scripts in the workspace.
+
+------------------------------
+------------------------------
+------------------------------
+
+python scripts/gen_ca.py --ca-name MyRootCA --output-dir certs
+
+python scripts/gen_cert.py MyRootCA client.example.com client --output_dir certs
+
+python scripts/gen_cert.py MyRootCA myserver.example.com server --output_dir certs
+
+------------------------------
+------------------------------
+------------------------------
+
+and run diagnostics w/
+
+python scripts/diag_pki.py
+
+------------------------------
+------------------------------
+------------------------------
