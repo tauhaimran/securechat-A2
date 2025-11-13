@@ -27,7 +27,8 @@ def b64d(s: str): #raise NotImplementedError
 # > SHA-256 hash of data as hex string - helper for signatures
 #-----------------------------------------------------------------------
 def sha256_hex(data: bytes): #raise NotImplementedError
-    return hashlib.sha256() # create sha256 hash object
+    #return hashlib.sha256() # create sha256 hash object - but returns an empty hash
+    return hashlib.sha256(data).hexdigest() # this one workds better - returns the hex digest of the hash
 
 
 #-----------------------------------------------------------------------
