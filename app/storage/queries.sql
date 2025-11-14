@@ -28,3 +28,9 @@ USE securechat;
 SELECT * FROM users;
 
 
+#use this to delete the table when testing from scratch again
+USE securechat;
+DELETE FROM users;
+drop table users;
+
+
