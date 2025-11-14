@@ -1,7 +1,7 @@
 
 #This stuff/files for our specific project [ uncomment b4 submission ]
 .vscode/
-.env/
+.env
 #*.sql
 #*testing_files/
 

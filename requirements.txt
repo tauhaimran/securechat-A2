@@ -1,5 +1,6 @@
 cryptography
 PyMySQL
+mysql
 python-dotenv
 pydantic
 rich
