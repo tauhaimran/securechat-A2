@@ -1,0 +1,59 @@
+PS F:\FAST-UNI\securechat-A2> python app/storage/db.py
+[DB] Users table ready.
+
+--- REGISTER DEBUG ---
+salt (hex)      = 2d0b6452511a38b9caa8adb60e9e67ae
+pwd_hash        = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+----------------------
+
+Registering user 'alice' -> True
+
+--- LOGIN DEBUG ---
+salt from DB (raw) = b'-\x0bdRQ\x1a8\xb9\xca\xa8\xad\xb6\x0e\x9eg\xae' <class 'bytes'>
+salt converted     = 2d0b6452511a38b9caa8adb60e9e67ae
+expected hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+expected hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+--------------------
+
+Verify user 'alice' -> True
+
+--- LOGIN DEBUG ---
+salt from DB (raw) = b'-\x0bdRQ\x1a8\xb9\xca\xa8\xad\xb6\x0e\x9eg\xae' <class 'bytes'>
+salt converted     = 2d0b6452511a38b9caa8adb60e9e67ae
+expected hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 9755fbc7b597f898f19f9fc6f3582942621dc2a7023a545f73343e84da1f2a9a
+--------------------
+
+Verify wrong password -> False
+PS F:\FAST-UNI\securechat-A2> ^C
+PS F:\FAST-UNI\securechat-A2> python app/storage/db.py
+[DB] Users table ready.
+
+--- REGISTER DEBUG ---
+salt (hex)      = fdf1cf685d19f3ca494e6df2a7e1f6ed
+pwd_hash        = 0819f9ac3fd40a14cc27c9d9d1e09b7752e0193e9f21feeb67cd505967bff174
+----------------------
+
+DEBUG: user already exists
+Registering user 'alice' -> False
+
+--- LOGIN DEBUG ---
+salt from DB (raw) = b'-\x0bdRQ\x1a8\xb9\xca\xa8\xad\xb6\x0e\x9eg\xae' <class 'bytes'>
+salt converted     = 2d0b6452511a38b9caa8adb60e9e67ae
+expected hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+--------------------
+
+Verify user 'alice' -> True
+
+--- LOGIN DEBUG ---
+salt from DB (raw) = b'-\x0bdRQ\x1a8\xb9\xca\xa8\xad\xb6\x0e\x9eg\xae' <class 'bytes'>
+salt converted     = 2d0b6452511a38b9caa8adb60e9e67ae
+expected hash      = 6522289889c5c351f45fb55b5384779c55116c405fa0519573290c34f037aad5
+computed hash      = 9755fbc7b597f898f19f9fc6f3582942621dc2a7023a545f73343e84da1f2a9a
+--------------------
+
+Verify wrong password -> False
