@@ -50,13 +50,13 @@ def verify_signature(ca_cert: Certificate, leaf_cert: Certificate) -> bool:
         return True
     except InvalidSignature:
         return False
-    except Exception as exc:          # pragma: no cover – unexpected
+    except Exception as exc:
         raise ValueError(f"Signature verification error: {exc}") from exc
 
 
 def check_validity(cert: Certificate) -> bool:
     """Return True if the current UTC time is inside the cert's validity window."""
-    now = datetime.now(timezone.utc)          # <-- fixed: use timezone.utc
+    now = datetime.now(timezone.utc)
     return cert.not_valid_before_utc <= now <= cert.not_valid_after_utc
 
 
@@ -78,11 +78,7 @@ def get_san_dns_names(cert: Certificate) -> List[str]:
 
 
 def verify_identity(cert: Certificate, expected_hostname: str) -> bool:
-    """
-    Match the expected hostname against:
-      1. Common Name (CN)
-      2. Any DNSName in SubjectAlternativeName
-    """
+    """Match the expected hostname against CN or SAN."""
     if get_common_name(cert) == expected_hostname:
         return True
     return expected_hostname in get_san_dns_names(cert)
@@ -98,6 +94,22 @@ def is_ca_certificate(cert: Certificate) -> bool:
 
 
 # ----------------------------------------------------------------------
+# NEW: Extract RSA public key from X.509 certificate
+# ----------------------------------------------------------------------
+def extract_public_key_from_cert(cert_pem: str) -> str:
+    """
+    Extract RSA public key in PEM format from an X.509 certificate.
+    Used for signature verification of chat messages.
+    """
+    cert = x509.load_pem_x509_certificate(cert_pem.encode("utf-8"), backend)
+    pub_key = cert.public_key()
+    return pub_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode("utf-8")
+
+
+# ----------------------------------------------------------------------
 # Full validation (used for file-based certs)
 # ----------------------------------------------------------------------
 def validate_certificate(
@@ -105,30 +117,19 @@ def validate_certificate(
     ca_pem_path: str,
     expected_hostname: str,
 ) -> Certificate:
-    """
-    Complete PKI validation used in manual tests or config loading.
-    Returns the validated leaf certificate.
-    Raises a clear ValueError on any failure.
-    """
+    """Complete PKI validation used in manual tests or config loading."""
     ca_cert = load_ca_certificate(ca_pem_path)
     leaf_cert = load_certificate(leaf_pem_path)
 
-    # 1. Chain signature
     if not verify_signature(ca_cert, leaf_cert):
         raise ValueError("Leaf certificate is NOT signed by the trusted CA")
-
-    # 2. CA really is a CA
     if not is_ca_certificate(ca_cert):
         raise ValueError("Trusted CA certificate lacks BasicConstraints ca=True")
-
-    # 3. Validity window
     if not check_validity(leaf_cert):
         raise ValueError(
             f"Leaf certificate outside validity window: "
-            f"{leaf_cert.not_valid_before_utc} → {leaf_cert.not_valid_after_utc}"
+            f"{leaf_cert.not_valid_before_utc} to {leaf_cert.not_valid_after_utc}"
         )
-
-    # 4. Hostname / identity
     if not verify_identity(leaf_cert, expected_hostname):
         cn = get_common_name(leaf_cert) or "None"
         san = get_san_dns_names(leaf_cert)
@@ -136,21 +137,18 @@ def validate_certificate(
             f"Hostname mismatch – expected: {expected_hostname} | "
             f"CN: {cn} | SAN DNS: {san}"
         )
-
     return leaf_cert
 
 
 # ----------------------------------------------------------------------
-# Helpers that work with **PEM strings** (hello messages)
+# Helpers that work with PEM strings (hello messages)
 # ----------------------------------------------------------------------
 def validate_server_certificate(
-    server_cert_pem: str,          # PEM string from "server hello"
+    server_cert_pem: str,
     ca_pem_path: str,
     expected_server_name: str,
 ) -> Certificate:
-    """
-    Client-side validation of the server certificate received in the hello.
-    """
+    """Client-side validation of the server certificate."""
     ca_cert = load_ca_certificate(ca_pem_path)
     cert = x509.load_pem_x509_certificate(server_cert_pem.encode("utf-8"), backend)
 
@@ -165,14 +163,11 @@ def validate_server_certificate(
 
 
 def validate_client_certificate(
-    client_cert_pem: str,          # PEM string from "hello"
+    client_cert_pem: str,
     ca_pem_path: str,
     expected_client_name: Optional[str] = None,
 ) -> Certificate:
-    """
-    Server-side validation of the client certificate.
-    If expected_client_name is None we only check chain + validity.
-    """
+    """Server-side validation of the client certificate."""
     ca_cert = load_ca_certificate(ca_pem_path)
     cert = x509.load_pem_x509_certificate(client_cert_pem.encode("utf-8"), backend)
 
@@ -192,9 +187,7 @@ def validate_client_certificate(
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 4:
-        print(
-            "Usage: python -m app.crypto.pki <leaf.pem> <ca.pem> <expected_hostname>"
-        )
+        print("Usage: python -m app.crypto.pki <leaf.pem> <ca.pem> <expected_hostname>")
         sys.exit(1)
 
     leaf_path, ca_path, hostname = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -203,7 +196,7 @@ if __name__ == "__main__":
         print(f"Certificate VALID for {hostname}")
         print(f"  Subject : {cert.subject}")
         print(f"  Expires : {cert.not_valid_after_utc}")
-    except Exception as exc:          # pragma: no cover
+    except Exception as exc:
         print(f"Validation FAILED: {exc}")
 
 # to run this script: python -m app.crypto.pki certs/myserver.example.com_cert.pem certs/MyRootCA_ca_cert.pem myserver.example.com
